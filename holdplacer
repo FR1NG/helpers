@@ -1,0 +1,36 @@
+#!/bin/bash
+
+source .env
+
+function die() {
+  echo $1
+  exit
+}
+EMPTY=0
+for arg in $@ 
+do
+  case $arg in
+    -e) EMPTY=1 
+      ;;
+  esac
+done
+
+if [ $# -lt 1 ]; then
+  die 'no input file specified'
+fi
+
+FILE=$1
+
+if [ -f $FILE ]; then
+  VARS="$(grep -Po '\[\K[^]]*' $FILE)"
+  for VAR in $VARS;
+  do
+    VALUE=${!VAR}
+    if [ ! -z $VALUE ] || [ $EMPTY -eq 1 ]; then
+      sed -i  "s#\[${VAR}\]#${VALUE}#g" $FILE
+    fi
+  done
+else
+  die "cannot open file: $FILE"
+fi
+#vim: set ft=sh
